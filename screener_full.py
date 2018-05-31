@@ -11,6 +11,7 @@ import warnings
 from bs4 import BeautifulSoup, Comment
 import re
 import numpy as np
+
 warnings.filterwarnings(action='once')
 
 #%%
@@ -25,9 +26,10 @@ twoupdirectory = os.path.dirname(oneupdirectory)
 
 # In[3]:
 stocklistpath = oneupdirectory
-os.path.join(cwd, 'data', newdatafolder, 'Annual')
 pathannual=os.path.join(cwd, 'data', newdatafolder, 'Annual')
 pathquaterly=os.path.join(cwd, 'data', newdatafolder, 'Quaterly')
+pathttm=os.path.join(cwd, 'data', newdatafolder, 'TTM')
+pathannualreports=os.path.join(cwd, 'data', newdatafolder, 'Annual_Reports')
 
 #%%
 #Delete the previous content of error file it it exist
@@ -41,24 +43,30 @@ except:
     pass
 
 
+
 #%%
 
 #stocklistfilename  = 'error1.csv'
 stocklistfilename  = 'EQUITY_L_NSE.csv'
 
-errorfilename= 'error1.csv'
+stocklisfilenamewithBSEcodeandsector = 'EQUITY_NSE_WITH BSECODE_AND_SECTOR.csv'
 
-path=r'C:\Users\achowdhury143777\OneDrive - Applied Materials\scripts\NSE_STOCKLIST'
+errorfilename= 'error1.csv'
+allquaterlynanfilename ='allquaterlynan.csv'
+
+#path=oneupdirectory
 
 #stocklist = pd.read_csv(os.path.join(stocklistpath,stocklistfilename), usecols=['SYMBOL'])
 stocklist = pd.read_csv(os.path.join(stocklistpath, stocklistfilename), usecols=['SYMBOL'])
 stocklist['downloadedflag'] = stocklist['SYMBOL']
+stocklist['bsecode'] = stocklist['SYMBOL']
+stocklist['sector'] = stocklist['SYMBOL']
 
 #%%
 alreadydownloaded = "downloaded.csv"
 
 try:
-    stocklist2 = pd.read_csv(alreadydownloaded, usecols=['SYMBOL', 'downloadedflag'])
+    stocklist2 = pd.read_csv(alreadydownloaded, usecols=['SYMBOL', 'downloadedflag', 'bsecode', 'sector'])
     
 except:
     stocklist2 = stocklist
@@ -94,20 +102,38 @@ password.send_keys("keshav123")
 browser.find_element_by_xpath('//*[@id="top"]/div/div/form/fieldset/div[3]/button').click()
 time.sleep(3.16)
 
-
-
+#%%
+#url = "https://www.screener.in/company/" + 'BODALCHEM'
+#
+#
+#browser.get(url)
+#time.sleep(2.22)
+#
+#browser.find_element_by_xpath('//*[@id="balancesheet"]/div/div/table/tbody/tr[9]/td[1]').click()
+#time.sleep(.5)
+#
+#browser.find_element_by_xpath('//*[@id="cashflow"]/div/div/table/tbody/tr[1]/td[1]').click()
+#time.sleep(0.6)
+#
+#browser.find_element_by_xpath('//*[@id="cashflow"]/div/div/table/tbody/tr[5]/td[1]').click()
+#time.sleep(0.5)
+#
+#pagesource = browser.page_source.encode('utf-8')
+#data = pd.read_html(pagesource)
 
 
 #%%
 i = 0
 for i, each in enumerate (stocklist['SYMBOL']):
+
     
     if(stocklist2['downloadedflag'].iloc[i] == stocklist['downloadedflag'].iloc[i]):
 #%%
         try:
             # In[6]:
-            
-            url = "https://www.screener.in/company/" + each
+            filename = each + '.csv'
+            url = "https://www.screener.in/company/" + each + '/consolidated'
+            #url = "https://www.screener.in/company/" + each
             
             
             browser.get(url)
@@ -139,10 +165,18 @@ for i, each in enumerate (stocklist['SYMBOL']):
             
             
             Quaterly = data[1]
-            Quaterly = Quaterly.set_index('Unnamed: 0')
-            Quaterly.index.name = None
-            Quaterly = Quaterly.transpose()
-            Quaterly.index = Quaterly.index.to_datetime()
+            try:
+                Quaterly = Quaterly.set_index('Unnamed: 0')
+                Quaterly.index.name = None
+                Quaterly = Quaterly.transpose()
+                Quaterly.index = Quaterly.index.to_datetime()
+                Quaterly.to_csv(os.path.join(pathquaterly,filename))
+            except:
+                print ("All Quaterly is null_Download Standalone", each)
+                fd = open(allquaterlynanfilename,'a')
+                fd.write('\n')
+                fd.write(each)
+                fd.close()
             #print (Quaterly)
             
             
@@ -229,15 +263,82 @@ for i, each in enumerate (stocklist['SYMBOL']):
             
             #%%
             
-            filename = each + '.csv'
+            
             #export Annual data
             
             result.to_csv(os.path.join(pathannual,filename))
             #export Quaterly data
-            Quaterly.to_csv(os.path.join(pathquaterly,filename))
+            
             stocklist2['downloadedflag'].iloc[i] = 'yes'
+            #stocklist2.to_csv(alreadydownloaded)
+            
+            #%%Second Part
+            
+            # Sector
+            soup = BeautifulSoup(pagesource)
+            for element in soup(text=lambda text: isinstance(text, Comment)):
+                element.extract()
+                
+            Head= soup.find('h1')
+            sector = (Head.small.text)
+            stocklist2['sector'].iloc[i] = sector
+            
+            
+            # TTM Values + Promototer Holdings
+            Head4= soup.findAll('h4')
+            mylist = []
+            for j, each1 in enumerate (Head4):
+                try:
+                    #Property = str(each.contents[0].encode('utf-8'))
+                    Property = str(each1.contents[0].encode('utf-8'))
+                    #Substitute unwanted characters from the Property Field
+                    Property = re.sub('b', '', Property)
+                    Property = re.sub("'", '', Property)
+                    
+                    ValueMatString = str(each1.contents[2].encode('utf-8'))
+                    #Extract the real numbers from the strings
+                    Valuematrix = (re.findall(r"[-+]?\d*\.\d+|\d+", ValueMatString))
+                    #get the last real number
+                    Value = Valuematrix[-1]
+                    mylist.append([Property, Value])
+                except:
+                    pass
+            
+            #mylist = np.transpose(mylist)  
+            df = pd.DataFrame(np.transpose(mylist))
+            df.to_csv(os.path.join(pathttm,filename), header = False, index = False)
+            
+            
+            #Annual Reports File          
+            links = soup.findAll('a')
+            linklist = []
+            for link in links:
+                linklist.append([link.text, link.get('href')])
+           
+            df2 = pd.DataFrame(np.transpose(linklist))
+            df2.columns = df2.iloc[0]
+            df2 = df2.reindex(df2.index.drop(0))
+            
+            colNames = df2.columns[df2.columns.str.contains(pat = 'Financial Year')] 
+            
+            
+            AnnualReport = df2[colNames]
+            
+            AnnualReport.to_csv(os.path.join(pathannualreports,filename), index = False)
+            
+            
+            # BSE Code
+            BSEurl = df2['BSE'].iloc[0]
+            Segments = BSEurl.rpartition('/')
+            Segments1 = Segments[0].rpartition('/')
+            bsecode = Segments1[2]
+            stocklist2['bsecode'].iloc[i] = bsecode
+            
             stocklist2.to_csv(alreadydownloaded)
+            stocklist2.to_csv(os.path.join(stocklistpath, stocklisfilenamewithBSEcodeandsector))
+            
             print("Success:", each)
+        
             
         #%%
         except:
@@ -246,14 +347,18 @@ for i, each in enumerate (stocklist['SYMBOL']):
                 fd.write(each)
                 fd.close()
                 print("Failed:", each)
+
+
 #%%
 browser.quit()
 stocklist2.to_csv(alreadydownloaded)
 
 
-# In[ ]:
 
 
-#code to reindex -- https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.reindex.html
+
+
+
+
 
 

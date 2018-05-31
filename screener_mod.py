@@ -16,19 +16,10 @@ cwd = os.getcwd()
 
 oneupdirectory = os.path.dirname(cwd)
 twoupdirectory = os.path.dirname(oneupdirectory)
-
-filename='SPAL.csv' 
-#filename = each + '.csv'
-print(cwd)
-newdata = pd.read_csv(os.path.join(cwd, 'data', newdatafolder, 'Annual', filename), index_col = 0)
-#if New Data contains 
-newdata.index = pd.to_datetime(newdata.index, errors='ignore', format = "%Y/%m/%d")
  
 
 
 #%%
-
-#stocklistpath = r'/home/physicscoaching1/datadownload'
 stocklistpath=oneupdirectory
 stocklistfilename  = 'EQUITY_L_NSE.csv' 
 
@@ -56,18 +47,25 @@ errorfilename= 'combinederror.csv'
 i = 0
 for i, each in enumerate (stocklist['SYMBOL']):
     
-    if ((stocklist['combinedflag'].iloc[i] != stocklist2['combinedflag'].iloc[i])):
+    if ((stocklist['combinedflag'].iloc[i] != 'yes')):
     
         try:
-            filename='SPAL.csv' 
-            #filename = each + '.csv'
-            newdata = pd.read_csv(os.path.join(cwd, 'data', newdatafolder, 'Annual', filename))
-            existingdata = pd.read_csv(os.path.join(cwd, 'data', 'Annual', filename))
+            filename = each + '.csv'
+            data = pd.read_csv(os.path.join(cwd, 'data', 'Annual', filename))
             
-            data = pd.concat([newdata, existingdata], verify_integrity=False)
-            data = data[data.index.duplicated(keep='first')]
+            data['EPS Growth'] = ((data['EPS (unadj)'] -data['EPS (unadj)'].shift(1))
+                                              /(data['EPS (unadj)'].shift(1))*100)
+            data['Return on Capital Employed'] = 100*(data['Net Profit']+data['Interest']+data['Tax'])/(data['Share Capital']
+                                                                            +data['Reserves']+ data['Borrowings'])
+            data['Interest Coverage Ratio'] = (data['Net Profit']+data['Interest']+data['Tax'])/(data['Interest'])
+            data['Financial Leverage Ratio'] = data['Total Assets']/(data['Share Capital']+data['Reserves'])
+            data['Account Receivables Turnover Ratio'] =  1/data['Receivables Sales Ratio']
+            data['Inventory Turnover Ratio'] = 1/data['Inventory Sales Ratio']
+            data['Fixed Assets Turnover Ratio'] = data['Sales']/data['Fixed Assets']
             
+            data.to_csv(os.path.join(cwd, 'data', 'Annual', filename))
             stocklist2['combinedflag'].iloc[i] = 'yes'
+            print('success')
             #stocklist2.to_csv(alreadycombined)
            
         except:
@@ -75,7 +73,7 @@ for i, each in enumerate (stocklist['SYMBOL']):
             fd.write('\n')
             #fd.write(each)
             fd.close()
-            #print("Failed:", each)
+            print("Failed:", each)
             
 stocklist2.to_csv(alreadycombined)
         
