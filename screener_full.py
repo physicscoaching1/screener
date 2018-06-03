@@ -132,55 +132,79 @@ for i, each in enumerate (stocklist['SYMBOL']):
         try:
             # In[6]:
             filename = each + '.csv'
-            url = "https://www.screener.in/company/" + each + '/consolidated'
-            #url = "https://www.screener.in/company/" + each
             
-            
-            browser.get(url)
-            time.sleep(2.22)
-            
-            browser.find_element_by_xpath('//*[@id="balancesheet"]/div/div/table/tbody/tr[9]/td[1]').click()
-            time.sleep(.5)
-            
-            browser.find_element_by_xpath('//*[@id="cashflow"]/div/div/table/tbody/tr[1]/td[1]').click()
-            time.sleep(0.6)
-            
-            browser.find_element_by_xpath('//*[@id="cashflow"]/div/div/table/tbody/tr[5]/td[1]').click()
-            time.sleep(0.5)
-            
-            pagesource = browser.page_source.encode('utf-8')
-            data = pd.read_html(pagesource)
-            
-            
-            #print (data)
-            
-            
-            #PeerComparision = data[0]
-            #PeerComparision = PeerComparision.set_index('Name')
-            #PeerComparision = PeerComparision.drop('S.No.', 1)
-            #print (PeerComparision)
-            
-            
-            # In[10]:
-            
-            
-            Quaterly = data[1]
             try:
+                url = "https://www.screener.in/company/" + each + '/consolidated'
+                #url = "https://www.screener.in/company/" + each
+                
+                
+                browser.get(url)
+                time.sleep(2.22)
+                
+                browser.find_element_by_xpath('//*[@id="balancesheet"]/div/div/table/tbody/tr[9]/td[1]').click()
+                time.sleep(.5)
+                
+                browser.find_element_by_xpath('//*[@id="cashflow"]/div/div/table/tbody/tr[1]/td[1]').click()
+                time.sleep(0.6)
+                
+                browser.find_element_by_xpath('//*[@id="cashflow"]/div/div/table/tbody/tr[5]/td[1]').click()
+                time.sleep(0.5)
+                
+                pagesource = browser.page_source.encode('utf-8')
+                data = pd.read_html(pagesource)
+                         
+                Quaterly = data[1]
+    #            try:
                 Quaterly = Quaterly.set_index('Unnamed: 0')
                 Quaterly.index.name = None
                 Quaterly = Quaterly.transpose()
                 Quaterly.index = Quaterly.index.to_datetime()
                 Quaterly.to_csv(os.path.join(pathquaterly,filename))
+    #            except:
+    #                print ("All Quaterly is null_Download Standalone", each)
+    #                fd = open(allquaterlynanfilename,'a')
+    #                fd.write('\n')
+    #                fd.write(each)
+    #                fd.close()
+    #            #print (Quaterly)
+    
             except:
-                print ("All Quaterly is null_Download Standalone", each)
-                fd = open(allquaterlynanfilename,'a')
-                fd.write('\n')
-                fd.write(each)
-                fd.close()
-            #print (Quaterly)
+            
+                url = "https://www.screener.in/company/" + each
+                #url = "https://www.screener.in/company/" + each
+                
+                
+                browser.get(url)
+                time.sleep(2.22)
+                
+                browser.find_element_by_xpath('//*[@id="balancesheet"]/div/div/table/tbody/tr[9]/td[1]').click()
+                time.sleep(.5)
+                
+                browser.find_element_by_xpath('//*[@id="cashflow"]/div/div/table/tbody/tr[1]/td[1]').click()
+                time.sleep(0.6)
+                
+                browser.find_element_by_xpath('//*[@id="cashflow"]/div/div/table/tbody/tr[5]/td[1]').click()
+                time.sleep(0.5)
+                
+                pagesource = browser.page_source.encode('utf-8')
+                data = pd.read_html(pagesource)
+                         
+                Quaterly = data[1]
+    #            try:
+                Quaterly = Quaterly.set_index('Unnamed: 0')
+                Quaterly.index.name = None
+                Quaterly = Quaterly.transpose()
+                Quaterly.index = Quaterly.index.to_datetime()
+                Quaterly.to_csv(os.path.join(pathquaterly,filename))
+        
             
             
             # In[16]:
+            
+            #PeerComparision = data[0]
+            #PeerComparision = PeerComparision.set_index('Name')
+            #PeerComparision = PeerComparision.drop('S.No.', 1)
+            #print (PeerComparision)
             
             
             ProfitandLoss = data[2]
@@ -249,7 +273,7 @@ for i, each in enumerate (stocklist['SYMBOL']):
             
             Ratios['Inventory Turnover Ratio'] = 1/Ratios['Inventory Sales Ratio']
             Ratios['Account Receivables Turnover Ratio'] =  1/Ratios['Receivables Sales Ratio']
-            Ratios['Fixed Assets Turnover Ratio'] = ProfitandLossWoTTM['Sales']/BalanceSheet['Fixed Assets']
+            Ratios['Fixed Asset Sales Ratio'] = BalanceSheet['Fixed Assets']/ProfitandLossWoTTM['Sales']
             #Ratios['Working Capital Turnover Ratio'] = (1)/ProfitandLossWoTTM['Sales']
             
             #print (GrowthRates)
@@ -296,10 +320,19 @@ for i, each in enumerate (stocklist['SYMBOL']):
                     Property = re.sub("'", '', Property)
                     
                     ValueMatString = str(each1.contents[2].encode('utf-8'))
-                    #Extract the real numbers from the strings
-                    Valuematrix = (re.findall(r"[-+]?\d*\.\d+|\d+", ValueMatString))
-                    #get the last real number
-                    Value = Valuematrix[-1]
+                            #Substitute unwanted characters from the Property Field
+                    ValueMatString = re.sub('b', '', ValueMatString)
+                    ValueMatString = re.sub("'", '', ValueMatString)
+                    
+                    Value = ValueMatString
+                    
+                    try:
+                        #Extract the real numbers from the strings
+                        Valuematrix = (re.findall(r"[-+]?\d*\.\d+|\d+", ValueMatString))
+                        #get the last real number
+                        Value = Valuematrix[-1]
+                    except:
+                        pass
                     mylist.append([Property, Value])
                 except:
                     pass

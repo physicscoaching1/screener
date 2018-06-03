@@ -104,56 +104,68 @@ time.sleep(3.16)
 
 
 #%%
-each = '20MICRONS'
-#code to reindex -- https://pandas.pydata.org/pandas-docs/stable/generated/pandas.DataFrame.reindex.html
-url = "https://www.screener.in/company/" + each + '/consolidated'
-#url = "https://www.screener.in/company/" + each
+
+each = 'ABFRL'
 
 
-browser.get(url)
-time.sleep(2.22)
-
-browser.find_element_by_xpath('//*[@id="balancesheet"]/div/div/table/tbody/tr[9]/td[1]').click()
-time.sleep(.5)
-
-browser.find_element_by_xpath('//*[@id="cashflow"]/div/div/table/tbody/tr[1]/td[1]').click()
-time.sleep(0.6)
-
-browser.find_element_by_xpath('//*[@id="cashflow"]/div/div/table/tbody/tr[5]/td[1]').click()
-time.sleep(0.5)
-
-pagesource = browser.page_source.encode('utf-8')
-data = pd.read_html(pagesource)
-
-#%%
-
-
-#print (data)
-
-
+try: 
+    url = "https://www.screener.in/company/" + each + '/consolidated'
+    #url = "https://www.screener.in/company/" + each
+    
+    
+    browser.get(url)
+    time.sleep(2.22)
+    
+    browser.find_element_by_xpath('//*[@id="balancesheet"]/div/div/table/tbody/tr[9]/td[1]').click()
+    time.sleep(.5)
+    
+    browser.find_element_by_xpath('//*[@id="cashflow"]/div/div/table/tbody/tr[1]/td[1]').click()
+    time.sleep(0.6)
+    
+    browser.find_element_by_xpath('//*[@id="cashflow"]/div/div/table/tbody/tr[5]/td[1]').click()
+    time.sleep(0.5)
+    
+    pagesource = browser.page_source.encode('utf-8')
+    data = pd.read_html(pagesource)
+    
+    Quaterly = data[1]
+    Quaterly = Quaterly.set_index('Unnamed: 0')
+    Quaterly.index.name = None
+    Quaterly = Quaterly.transpose()
+    Quaterly.index = Quaterly.index.to_datetime()
+    
+    
+except:
+    
+    url = "https://www.screener.in/company/" + each
+    #url = "https://www.screener.in/company/" + each
+    
+    
+    browser.get(url)
+    time.sleep(2.22)
+    
+    browser.find_element_by_xpath('//*[@id="balancesheet"]/div/div/table/tbody/tr[9]/td[1]').click()
+    time.sleep(.5)
+    
+    browser.find_element_by_xpath('//*[@id="cashflow"]/div/div/table/tbody/tr[1]/td[1]').click()
+    time.sleep(0.6)
+    
+    browser.find_element_by_xpath('//*[@id="cashflow"]/div/div/table/tbody/tr[5]/td[1]').click()
+    time.sleep(0.5)
+    
+    pagesource = browser.page_source.encode('utf-8')
+    data = pd.read_html(pagesource)
+    
+    Quaterly = data[1]
+    Quaterly = Quaterly.set_index('Unnamed: 0')
+    Quaterly.index.name = None
+    Quaterly = Quaterly.transpose()
+    Quaterly.index = Quaterly.index.to_datetime()
 #PeerComparision = data[0]
 #PeerComparision = PeerComparision.set_index('Name')
 #PeerComparision = PeerComparision.drop('S.No.', 1)
 #print (PeerComparision)
 
-
-# In[10]:
-
-
-Quaterly = data[1]
-try: 
-    Quaterly = Quaterly.set_index('Unnamed: 0')
-    Quaterly.index.name = None
-    Quaterly = Quaterly.transpose()
-    Quaterly.index = Quaterly.index.to_datetime()
-except: 
-    print ("all Quaterly is null", each)
-#    fd = open(allquaterlynanfilename,'a')
-#    fd.write('\n')
-#    fd.write(each)
-#    fd.close()
-print (Quaterly)
-#print (Quaterly)
 
 
 # In[16]:
@@ -271,7 +283,7 @@ for  j, each1 in enumerate (Head4):
 #%%
 mylist = []
 for  j, each1 in enumerate (Head4):
-#    try:
+    try:
         #Property = str(each.contents[0].encode('utf-8'))
         Property = str(each1.contents[0].encode('utf-8'))
         #Substitute unwanted characters from the Property Field
@@ -279,19 +291,29 @@ for  j, each1 in enumerate (Head4):
         Property = re.sub("'", '', Property)
         
         ValueMatString = str(each1.contents[2].encode('utf-8'))
+                #Substitute unwanted characters from the Property Field
+        ValueMatString = re.sub('b', '', ValueMatString)
+        ValueMatString = re.sub("'", '', ValueMatString)
+        
         Value = ValueMatString
-        #Extract the real numbers from the strings
-        #Valuematrix = (re.findall(r"[-+]?\d*\.\d+|\d+", ValueMatString))
-        #get the last real number
-        #Value = Valuematrix[-1]
+        
+        try:
+            #Extract the real numbers from the strings
+            Valuematrix = (re.findall(r"[-+]?\d*\.\d+|\d+", ValueMatString))
+            #get the last real number
+            Value = Valuematrix[-1]
+        except:
+            pass
         mylist.append([Property, Value])
-#    except:
-#        pass
+    except:
+        pass
     
 #%%
 #
-##mylist = np.transpose(mylist)  
-#df = pd.DataFrame(np.transpose(mylist))
+mylist = np.transpose(mylist)  
+df = pd.DataFrame(np.transpose(mylist))
+
+#%%
 #df.to_csv(os.path.join(pathttm,filename), header = False, index = False)
 #
 #
