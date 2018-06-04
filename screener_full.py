@@ -26,10 +26,10 @@ twoupdirectory = os.path.dirname(oneupdirectory)
 
 # In[3]:
 stocklistpath = oneupdirectory
-pathannual=os.path.join(cwd, 'data', newdatafolder, 'Annual')
-pathquaterly=os.path.join(cwd, 'data', newdatafolder, 'Quaterly')
-pathttm=os.path.join(cwd, 'data', newdatafolder, 'TTM')
-pathannualreports=os.path.join(cwd, 'data', newdatafolder, 'Annual_Reports')
+pathannual=os.path.join(oneupdirectory, 'data', 'screener', newdatafolder, 'Annual')
+pathquaterly=os.path.join(oneupdirectory, 'data', 'screener', newdatafolder, 'Quaterly')
+pathttm=os.path.join(oneupdirectory, 'data', 'screener', newdatafolder, 'TTM')
+pathannualreports=os.path.join(oneupdirectory, 'data', 'screener', newdatafolder, 'Annual_Reports')
 
 #%%
 #Delete the previous content of error file it it exist
