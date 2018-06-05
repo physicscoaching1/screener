@@ -158,7 +158,8 @@ for i, each in enumerate (stocklist['SYMBOL']):
                 Quaterly = Quaterly.set_index('Unnamed: 0')
                 Quaterly.index.name = None
                 Quaterly = Quaterly.transpose()
-                Quaterly.index = Quaterly.index.to_datetime()
+#                Quaterly.index = Quaterly.index.to_datetime()
+                Quaterly.index = pd.to_datetime(Quaterly.index)
                 Quaterly.to_csv(os.path.join(pathquaterly,filename))
     #            except:
     #                print ("All Quaterly is null_Download Standalone", each)
@@ -194,7 +195,8 @@ for i, each in enumerate (stocklist['SYMBOL']):
                 Quaterly = Quaterly.set_index('Unnamed: 0')
                 Quaterly.index.name = None
                 Quaterly = Quaterly.transpose()
-                Quaterly.index = Quaterly.index.to_datetime()
+#                Quaterly.index = Quaterly.index.to_datetime()
+                Quaterly.index = pd.to_datetime(Quaterly.index)
                 Quaterly.to_csv(os.path.join(pathquaterly,filename))
         
             
@@ -223,7 +225,8 @@ for i, each in enumerate (stocklist['SYMBOL']):
                                               /(ProfitandLoss['EPS (unadj)'].shift(1))*100)
             #ProfitandLoss.index = ProfitandLoss.index.to_datetime()
             ProfitandLossWoTTM = ProfitandLoss.iloc[0:-1]
-            ProfitandLossWoTTM.index = ProfitandLossWoTTM.index.to_datetime()
+#           ProfitandLossWoTTM.index = ProfitandLossWoTTM.index.to_datetime()
+            ProfitandLossWoTTM.index = pd.to_datetime(ProfitandLossWoTTM.index)
             #print (ProfitandLossWoTTM)
             
             
@@ -234,7 +237,8 @@ for i, each in enumerate (stocklist['SYMBOL']):
             BalanceSheet = BalanceSheet.set_index('Unnamed: 0')
             BalanceSheet.index.name = None
             BalanceSheet = BalanceSheet.transpose()
-            BalanceSheet.index = BalanceSheet.index.to_datetime()
+#            BalanceSheet.index = BalanceSheet.index.to_datetime()
+            BalanceSheet.index = pd.to_datetime(BalanceSheet.index)
             #BalanceSheet.index =BalanceSheet.index.strftime("%Y-%m")
             #print (BalanceSheet)
             
@@ -242,7 +246,8 @@ for i, each in enumerate (stocklist['SYMBOL']):
             CashFlow = CashFlow.set_index('Unnamed: 0')
             CashFlow.index.name = None
             CashFlow = CashFlow.transpose()
-            CashFlow.index = CashFlow.index.to_datetime()
+#            CashFlow.index = CashFlow.index.to_datetime()
+            CashFlow.index = pd.to_datetime(CashFlow.index)
             #print (CashFlow)
             
             
@@ -299,7 +304,8 @@ for i, each in enumerate (stocklist['SYMBOL']):
             #%%Second Part
             
             # Sector
-            soup = BeautifulSoup(pagesource)
+            #soup = BeautifulSoup(pagesource, lxml)
+            soup = BeautifulSoup(pagesource, "lxml")
             for element in soup(text=lambda text: isinstance(text, Comment)):
                 element.extract()
                 

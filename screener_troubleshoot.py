@@ -105,7 +105,7 @@ time.sleep(3.16)
 
 #%%
 
-each = 'ABFRL'
+each = '20MICRON'
 
 
 try: 
@@ -160,7 +160,8 @@ except:
     Quaterly = Quaterly.set_index('Unnamed: 0')
     Quaterly.index.name = None
     Quaterly = Quaterly.transpose()
-    Quaterly.index = Quaterly.index.to_datetime()
+    Quaterly.index = pd.to_datetime(Quaterly.index)
+#    Quaterly.index = Quaterly.index.to_datetime()
 #PeerComparision = data[0]
 #PeerComparision = PeerComparision.set_index('Name')
 #PeerComparision = PeerComparision.drop('S.No.', 1)
@@ -187,7 +188,8 @@ ProfitandLoss['EPS Growth'] = ((ProfitandLoss['EPS (unadj)'] -ProfitandLoss['EPS
                                   /(ProfitandLoss['EPS (unadj)'].shift(1))*100)
 #ProfitandLoss.index = ProfitandLoss.index.to_datetime()
 ProfitandLossWoTTM = ProfitandLoss.iloc[0:-1]
-ProfitandLossWoTTM.index = ProfitandLossWoTTM.index.to_datetime()
+ProfitandLossWoTTM.index = pd.to_datetime(ProfitandLossWoTTM.index)
+#ProfitandLossWoTTM.index = ProfitandLossWoTTM.index.to_datetime()
 print (ProfitandLossWoTTM)
 
 
@@ -198,7 +200,8 @@ BalanceSheet = data[3]
 BalanceSheet = BalanceSheet.set_index('Unnamed: 0')
 BalanceSheet.index.name = None
 BalanceSheet = BalanceSheet.transpose()
-BalanceSheet.index = BalanceSheet.index.to_datetime()
+#BalanceSheet.index = BalanceSheet.index.to_datetime()
+BalanceSheet.index = pd.to_datetime(BalanceSheet.index)
 #BalanceSheet.index =BalanceSheet.index.strftime("%Y-%m")
 #print (BalanceSheet)
 
@@ -206,7 +209,8 @@ CashFlow = data[4]
 CashFlow = CashFlow.set_index('Unnamed: 0')
 CashFlow.index.name = None
 CashFlow = CashFlow.transpose()
-CashFlow.index = CashFlow.index.to_datetime()
+#CashFlow.index = CashFlow.index.to_datetime()
+CashFlow.index = pd.to_datetime(CashFlow.index)
 #print (CashFlow)
 
 
